@@ -17,4 +17,6 @@ COPY config/ ./config/
 COPY models/serving_cache/ ./models/serving_cache/
 
 EXPOSE 8000
-CMD ["uvicorn", "service.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Bind to $PORT when the host provides it (Render, Railway, Fly, Heroku all do),
+# defaulting to 8000 locally. Shell form so the env var is expanded at runtime.
+CMD uvicorn service.api.main:app --host 0.0.0.0 --port ${PORT:-8000}
