@@ -4,6 +4,7 @@
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Tests](https://img.shields.io/badge/tests-96%20passing-brightgreen.svg)](#testing)
+[![API: live](https://img.shields.io/badge/API-live-brightgreen.svg)](https://stockforecastrisk.onrender.com/docs)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 StockForecastRisk forecasts **volatility** and reports **calibrated Value-at-Risk (VaR)
@@ -14,6 +15,18 @@ not investment advice.
 Its defining design principle is **epistemic honesty**: the engine ships only signals
 that survive rigorous out-of-sample validation, and it is explicit about the limits of
 those it ships.
+
+## Live demo
+
+**Interactive API docs:** https://stockforecastrisk.onrender.com/docs
+
+```bash
+curl "https://stockforecastrisk.onrender.com/v1/forecast/AAPL?horizon=21"
+```
+
+Returns a calibrated volatility forecast and VaR/CVaR with per-horizon percentiles, a
+calibration note, and the model/parameter versions that produced the numbers. *(Free-tier
+host — the first request after idle may take ~30s to wake.)*
 
 ---
 
@@ -59,6 +72,32 @@ The engine is well-calibrated in normal conditions and **modestly understates ri
 severe stress** (crisis-year breach ~7–8%) — a limitation disclosed in every response
 rather than hidden. A 60-day horizon was evaluated and **excluded** because it does not
 calibrate at any conditioning window.
+
+### Performance
+
+![Volatility model vs. persistence baseline](docs/img/model_vs_baseline.png)
+
+The pooled volatility model beats a naive persistence baseline in every walk-forward
+fold (mean MAE 0.00638 vs 0.00752, ~15% reduction), validated point-in-time over
+2010–2026 on ~1.9M rows.
+
+<!-- Calibration-by-year chart: run `python -m training.diagnostics.diagnose_var_by_year`
+     to produce the real per-year breach rates, then `python -m training.diagnostics.plot_performance`
+     and uncomment the line below.
+![VaR calibration by year](docs/img/var_calibration_by_year.png)
+
+Calibrated near the 5% target in normal conditions; crisis years (2020, 2022) show
+elevated breach rates — disclosed in every response rather than hidden.
+-->
+
+![VaR breaches by year](docs/img/var_calibration_by_year.png)
+
+This is the *diagnosis* that motivated the risk design. A naive unconditional VaR
+breaches its 5% target badly in crisis years (2020: 13.8%, 2022: 13.4%) while sitting
+below target in calm years — tail-clustering, not uniform miscalibration. The shipped
+**filtered historical simulation** (returns standardized by trailing volatility)
+flattens this, bringing the pooled breach rate to ~5.8%; residual crisis-year
+understatement is disclosed in every response.
 
 ---
 
@@ -113,10 +152,47 @@ testing — the synthetic series carry no real signal).
 ### API
 
 ```bash
-GET /v1/forecast/{ticker}?horizon={5|10|21}
+# Live
+GET https://stockforecastrisk.onrender.com/v1/forecast/{ticker}?horizon={5|10|21}
+
+# Local
+GET http://localhost:8000/v1/forecast/{ticker}?horizon={5|10|21}
 ```
 
 Returns the volatility forecast, calibrated VaR/CVaR with per-horizon percentiles, a
 calibration note, and provenance versions. Interactive docs at `/docs`.
 
 ### Docker
+
+```bash
+docker compose up --build     # API on :8000, Streamlit on :8501
+```
+
+---
+
+## Testing
+
+```bash
+pip install -r requirements.txt pytest
+pytest
+```
+
+96 tests covering the honest contract (no directional fields; uncalibrated horizons
+rejected), risk-math correctness (VaR/CVaR coherence, per-horizon windows, no
+look-ahead), the walk-forward leakage guard, and config/engine agreement.
+
+---
+
+## Tech stack
+
+Python · XGBoost · FastAPI · Streamlit · Pydantic · Docker · pandas / NumPy / SciPy
+
+## Disclaimer
+
+For research and educational use only. This software does not provide investment
+advice. All estimates carry uncertainty and may be inaccurate, particularly during
+periods of severe market stress.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
