@@ -1,0 +1,59 @@
+# =========================================================================
+# StockForecastRisk — .gitignore
+# Principle: commit code + the SMALL serving cache (deploy needs it); exclude
+# secrets, large regenerable artifacts (raw/processed data, trained models),
+# and runtime/dev cruft.
+# =========================================================================
+
+# --- secrets (NEVER commit) ----------------------------------------------
+.env
+*.env
+!.env.example          # the placeholder template IS committed
+
+# --- data: large and regenerable from the pipeline -----------------------
+data/
+!data/sample/          # keep a tiny sample if you use one for tests/demos
+
+# --- models: large & regenerable, EXCEPT the serving cache the app reads --
+# Order matters: to re-include a file, its parent dirs must be re-included first.
+models/*
+!models/serving_cache/
+!models/serving_cache/**
+
+# --- logs (runtime data; the prediction log is generated at serve time) --
+logs/
+*.log
+
+# --- python ---------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.installed.cfg
+
+# --- virtual envs ---------------------------------------------------------
+.venv/
+venv/
+env/
+ENV/
+
+# --- test / type / lint caches -------------------------------------------
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+
+# --- notebooks: keep the .ipynb, drop the checkpoints --------------------
+.ipynb_checkpoints/
+
+# --- IDE / OS -------------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

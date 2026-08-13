@@ -1,0 +1,19 @@
+# Streamlit container — the human-facing dashboard. Same lean serving deps; reads the
+# precomputed cache and re-simulates the illustrative fan from cached jump params.
+# Needs the monte_carlo module from src/ but not the vol model or the raw panel.
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY src/ ./src/
+COPY apps/ ./apps/
+COPY config/ ./config/
+COPY models/serving_cache/ ./models/serving_cache/
+
+EXPOSE 8501
+# --server.address=0.0.0.0 so it's reachable from outside the container.
+CMD ["streamlit", "run", "apps/streamlit/app.py", \
+     "--server.address=0.0.0.0", "--server.port=8501"]

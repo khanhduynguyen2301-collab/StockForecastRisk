@@ -1,0 +1,28 @@
+# Keep serving images small: exclude everything the cache-reading surfaces don't need.
+# The 1.9M-row panel, the vol model, notebooks, and training code are all offline-only.
+
+# Data (raw + processed panel) — serving reads the cache, not these
+data/
+!models/serving_cache/
+
+# Models except the serving cache (vol model + jump params are offline inputs to
+# precompute; the cache already contains what serving needs)
+models/forecast/
+models/risk_params/
+
+# Offline / dev
+training/
+notebooks/
+tests/
+*.ipynb
+conversation.md
+
+# Python / env cruft
+__pycache__/
+*.pyc
+.venv/
+.env
+.git/
+.pytest_cache/
+.mypy_cache/
+*.egg-info/

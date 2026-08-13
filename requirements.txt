@@ -1,0 +1,17 @@
+# Serving dependencies only — what the API and Streamlit app need to read the
+# precomputed cache and render. Training/data-pipeline deps live in
+# requirements-train.txt (xgboost, scikit-learn, yfinance, etc.) and are NOT needed
+# to run either serving surface. Keeping this lean makes the container build fast
+# and small.
+
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+pandas>=2.2.0
+numpy>=1.26.0
+pyarrow>=15.0.0
+pydantic>=2.7.0
+pydantic-settings>=2.0.0
+plotly>=5.20.0
+streamlit>=1.35.0
+scipy>=1.11.0
+pyyaml>=6.0

@@ -1,0 +1,27 @@
+# Two serving surfaces from one precomputed cache. Redis was removed — nothing in the
+# code connected to it (it was scaffolding); the file-based serving cache is the only
+# cache v1 needs. Run `make precompute` before `docker compose up` so the cache exists.
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - ENV=development
+    # Mount the cache read-only so a re-precompute on the host is picked up on restart.
+    volumes:
+      - ./models/serving_cache:/app/models/serving_cache:ro
+      - ./logs:/app/logs        # prediction log (v2 drift-detection seam)
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.streamlit
+    ports:
+      - "8501:8501"
+    environment:
+      - ENV=development
+    volumes:
+      - ./models/serving_cache:/app/models/serving_cache:ro
